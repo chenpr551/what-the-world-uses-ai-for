@@ -194,6 +194,9 @@ html[data-lang="zh"] #info p { font-size: 16.5px; line-height: 1.8; }
 }
 .story-quote blockquote { margin:5px 0 0; color:var(--text); font-style:italic; }
 .story-quote figcaption,.story-source { font-size:12px; color:var(--text2); }
+.story-source .linkish { color:var(--orange); text-decoration:underline; font-size:12px; margin-left:4px; }
+.story-source.vpn { border-left:2px solid var(--orange); padding-left:8px; color:var(--text); }
+#about li.vpn-note { color:var(--text); border-left:2px solid var(--orange); padding-left:10px; list-style:none; margin-left:-12px; }
 #info.compact .story-quote,#info.compact .story-source { display:none; }
 #detail[data-scene="when"] { display:flex; flex-direction:column; }
 #detail[data-scene="when"] .hour-examples { order:0; }
@@ -324,6 +327,7 @@ html[data-scene="country-compare"] #info .hint{display:none}
 html[data-scene="country-compare"] #info .big{display:block;grid-column:1;grid-row:3 / 5;font-size:30px}
 html[data-scene="country-compare"] #info p{grid-column:2 / -1;grid-row:3;max-width:1000px}
 html[data-scene="country-compare"] #info .story-source{grid-column:2;grid-row:4}
+html[data-scene="country-compare"] #info .story-source.vpn{grid-column:2 / -1;grid-row:5;max-width:900px}
 html[data-scene="country-compare"] #info .chips{grid-column:3;grid-row:4}
 html[data-scene="country-compare"] #storyChart{
  left:var(--sl);right:var(--sr);top:max(320px,34vh);bottom:100px;
@@ -424,7 +428,8 @@ html[data-scene="country-compare"] #storyChart{
 <li><span class="en">The clock, questions, midnight and languages use WildChat (ChatGPT, 2023–24). Country comparisons, usage and purpose use the Anthropic Economic Index (Claude, May 2026). The charts draw on different products and periods.</span><span class="zh">时钟、提问、深夜和语言使用 WildChat（ChatGPT，2023–24）。国家比较、使用量和用途采用 Anthropic Economic Index（Claude，2026 年 5 月）。两套数据对应不同产品和时期。</span></li>
         <li><span class="en">Times are each user's local time. Each user is counted once per hour.</span><span class="zh">时间是用户当地时间，每个用户每小时只算一次。</span></li>
         <li><span class="en">Night topics come from keywords in the first question. This is a first pass.</span><span class="zh">深夜话题根据第一句提问里的关键词判断，是初步结果。</span></li>
-        <li><span class="en">Country comes from IP address; some users may use a VPN.</span><span class="zh">国家由 IP 地址判断，部分用户可能使用 VPN。</span></li></ul></div>
+        <li><span class="en">Country comes from the IP address. A user on a VPN is counted in the country of the VPN server.</span><span class="zh">国家由 IP 地址判断。使用 VPN 的用户，会被计入 VPN 服务器所在的国家。</span></li>
+        <li class="vpn-note"><span class="en"><b>Mainland China, Hong Kong and Macau are not in the Claude data.</b> Claude is not offered there (Anthropic Supported Regions Policy). People there who use Claude through a VPN are counted under the VPN's exit country, for example the US, Japan or Singapore. Their use is invisible in chapters 03–05, and those exit countries may look higher than they are. In WildChat (chapters 01–02) China does appear, but VPN users may still be counted elsewhere, so treat China's numbers as approximate.</span><span class="zh"><b>Claude 数据中没有中国大陆、香港和澳门。</b>Claude 不在这些地区提供服务（Anthropic 支持地区政策）。当地用户通过 VPN 使用 Claude 时，会被计入 VPN 出口所在的国家，例如美国、日本、新加坡。因此第 03–05 章看不到这部分使用，这些出口国家的数值也可能偏高。WildChat（第 01–02 章）里有中国的数据，但部分 VPN 用户仍可能被算到别的国家，中国的数字只能作为近似值。</span></li></ul></div></ul></div>
     </div>
     <p class="credit"><span class="en">Made with D3.js and Canvas · Team 地球Online · draft for the PacificVis 2027 Visual Data Storytelling Contest</span><span class="zh">使用 D3.js 与 Canvas 制作 · 地球Online 小组 · PacificVis 2027 数据叙事比赛草稿</span></p>
   </div>
@@ -1812,6 +1817,8 @@ const storyNumber = id => { const i = storyOrder.indexOf(id); return i >= 0 ? '0
 const storySvg = $('storyNebula');
 const storyChart = $('storyChart');
 const storySource = (en, zh) => `<div class="story-source">${L(en, zh)}</div>`;
+const vpnNote = () => `<div class="story-source vpn">${L('Not in the Claude data: mainland China, Hong Kong and Macau, where Claude is not offered. Users there on a VPN are counted under the VPN\'s exit country (e.g. the US, Japan, Singapore).', 'Claude 数据中没有中国大陆、香港和澳门（Claude 未在当地提供服务）。当地用户通过 VPN 使用时，会被计入 VPN 出口国家（如美国、日本、新加坡）。')} <button type="button" class="linkish" onclick="document.getElementById('aboutBtn').click()">${L('More', '详情')} →</button></div>`;
+const vpnNoteWild = () => `<div class="story-source vpn">${L('Country comes from IP address. Users on a VPN, common in mainland China, are counted where the VPN exits, so country figures are approximate.', '国家由 IP 地址判断。使用 VPN 的用户（在中国大陆很常见）会被计入 VPN 出口国家，所以各国数字只是近似值。')}</div>`;
 const storyJump = (id, en, zh) => `<button type="button" class="chip" onclick="go(${id})">${L(en, zh)} →</button>`;
 function storyQuote(text, en, zh) {
   const safe = document.createElement('span');
@@ -1853,7 +1860,7 @@ lenses.push({
       big:'91×',
       p:L('From WildChat questions we turn to Claude usage. You will find Australia’s index about 91 times Tanzania’s. They sit at the two ends of the 121 countries and economies covered in May 2026.',
         '从 WildChat 的提问，我们转向 Claude 的使用。你会发现澳大利亚的指数约为坦桑尼亚的 91 倍。它们站在 2026 年 5 月这份数据覆盖的 121 个国家和经济体的两端。'),
-      extra:storySource('Anthropic Economic Index · Claude, May 2026.', 'Anthropic Economic Index · Claude，2026 年 5 月。') +
+      extra:storySource('Anthropic Economic Index · Claude, May 2026.', 'Anthropic Economic Index · Claude，2026 年 5 月。') + vpnNote() +
         `<div class="chips">${storyJump(GDP_SCATTER, 'Compare more countries', '比较更多国家')}</div>`,
       hint:L('Compare against the same baseline', '在共同基准下比较两国')
     };
@@ -1867,7 +1874,7 @@ lenses.push({
       big:'',
       p:L('Richer countries tend to use Claude more. Yet you will find neighbours on the income axis using it at very different intensities. Income tilts the field. It does not decide it.',
         '越富的国家往往越常用 Claude。但你会发现，收入轴上相邻的国家，使用强度却差得很远。收入让场地倾斜，却不决定结果。'),
-      extra:storySource('World Bank GDP per capita, 2025; Claude usage, May 2026 · 118 matched countries.', '世界银行人均 GDP，2025 年；Claude 使用指数，2026 年 5 月 · 118 个匹配国家。') +
+      extra:storySource('World Bank GDP per capita, 2025; Claude usage, May 2026 · 118 matched countries.', '世界银行人均 GDP，2025 年；Claude 使用指数，2026 年 5 月 · 118 个匹配国家。') + vpnNote() +
         `<div class="chips">${storyJump(3, 'Compare purposes by income group', '比较各收入组的用途')}</div>`,
       hint:L('Scroll to zoom · drag to pan · select a country', '滚轮缩放 · 拖动平移 · 选择国家')
     };
@@ -2392,6 +2399,7 @@ function storyInfo(o) {
     o.extra += storyQuote(sample.text, 'WildChat · Australia · 12:00 local time', 'WildChat · 澳大利亚 · 当地 12:00');
     const learning = orbitData.examples.find(item => item.country === 'JPN' && item.text.startsWith('Please explain entropy'));
     o.extra += storyQuote(learning.text, 'WildChat · Japan · learning example', 'WildChat · 日本 · 学习提问');
+    o.extra += vpnNoteWild();
     o.extra += `<div class="chips">${storyJump(NEBULA, 'Explore the questions', '探索人们的提问')}</div>`;
   }
   if (id === NEBULA) o.extra += `<div class="chips">${storyJump(COUNTRY_COMPARE, 'Compare two countries', '比较两个国家')}</div>`;
@@ -2419,6 +2427,7 @@ function storyInfo(o) {
       '在最低收入的三分之一国家，课业占 Claude 使用的份额高于最富的三分之一。河流的宽度让你看着这个份额随收入上升而收窄。');
     o.extra += storySource('In the observed Claude sample, coursework accounts for about 31% in the lowest-income group and 16% in the highest. The charts show usage intensity and purpose shares by income.',
       '在观测到的 Claude 样本中，课业占比在最低收入组约为 31%，在最高收入组约为 16%。两张图依次呈现使用强度与用途构成随收入的变化。');
+    o.extra += vpnNote();
   }
   return o;
 }
