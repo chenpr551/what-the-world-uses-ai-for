@@ -195,7 +195,11 @@ html[data-lang="zh"] #info p { font-size: 16.5px; line-height: 1.8; }
 .story-quote blockquote { margin:5px 0 0; color:var(--text); font-style:italic; }
 .story-quote figcaption,.story-source { font-size:12px; color:var(--text2); }
 .story-source .linkish { color:var(--orange); text-decoration:underline; font-size:12px; margin-left:4px; }
-.story-source.vpn { border-left:2px solid var(--orange); padding-left:8px; color:var(--text); }
+.story-source.vpn { display:block; border:1px solid rgba(255,176,30,.55); border-left:3px solid var(--orange); background:rgba(255,176,30,.10); border-radius:6px; padding:10px 12px; color:var(--text); font-size:13.5px; line-height:1.55; }
+.story-source.vpn .gap-tag { display:block; font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:.14em; color:var(--orange); margin-bottom:4px; text-transform:uppercase; }
+#info.compact .story-source.vpn { display:block; }
+#storyChart .story-gap { fill:var(--orange); font-size:14px; font-weight:600; }
+#storyChart .story-gap-sub { fill:var(--text); font-size:12.5px; }
 #about li.vpn-note { color:var(--text); border-left:2px solid var(--orange); padding-left:10px; list-style:none; margin-left:-12px; }
 #info.compact .story-quote,#info.compact .story-source { display:none; }
 #detail[data-scene="when"] { display:flex; flex-direction:column; }
@@ -1817,8 +1821,8 @@ const storyNumber = id => { const i = storyOrder.indexOf(id); return i >= 0 ? '0
 const storySvg = $('storyNebula');
 const storyChart = $('storyChart');
 const storySource = (en, zh) => `<div class="story-source">${L(en, zh)}</div>`;
-const vpnNote = () => `<div class="story-source vpn">${L('Not in the Claude data: mainland China, Hong Kong and Macau, where Claude is not offered. Users there on a VPN are counted under the VPN\'s exit country (e.g. the US, Japan, Singapore).', 'Claude 数据中没有中国大陆、香港和澳门（Claude 未在当地提供服务）。当地用户通过 VPN 使用时，会被计入 VPN 出口国家（如美国、日本、新加坡）。')} <button type="button" class="linkish" onclick="document.getElementById('aboutBtn').click()">${L('More', '详情')} →</button></div>`;
-const vpnNoteWild = () => `<div class="story-source vpn">${L('Country comes from IP address. Users on a VPN, common in mainland China, are counted where the VPN exits, so country figures are approximate.', '国家由 IP 地址判断。使用 VPN 的用户（在中国大陆很常见）会被计入 VPN 出口国家，所以各国数字只是近似值。')}</div>`;
+const vpnNote = () => `<div class="story-source vpn"><span class="gap-tag">⚠ ${L('Data gap: China', '数据缺口：中国')}</span>${L('Not in the Claude data: mainland China, Hong Kong and Macau, where Claude is not offered. Users there on a VPN are counted under the VPN\'s exit country (e.g. the US, Japan, Singapore).', 'Claude 数据中没有中国大陆、香港和澳门（Claude 未在当地提供服务）。当地用户通过 VPN 使用时，会被计入 VPN 出口国家（如美国、日本、新加坡）。')} <button type="button" class="linkish" onclick="document.getElementById('aboutBtn').click()">${L('More', '详情')} →</button></div>`;
+const vpnNoteWild = () => `<div class="story-source vpn"><span class="gap-tag">⚠ ${L('Country = IP address', '国家按 IP 判断')}</span>${L('Country comes from IP address. Users on a VPN, common in mainland China, are counted where the VPN exits, so country figures are approximate.', '国家由 IP 地址判断。使用 VPN 的用户（在中国大陆很常见）会被计入 VPN 出口国家，所以各国数字只是近似值。')}</div>`;
 const storyJump = (id, en, zh) => `<button type="button" class="chip" onclick="go(${id})">${L(en, zh)} →</button>`;
 function storyQuote(text, en, zh) {
   const safe = document.createElement('span');
@@ -1860,7 +1864,7 @@ lenses.push({
       big:'91×',
       p:L('From WildChat questions we turn to Claude usage. You will find Australia’s index about 91 times Tanzania’s. They sit at the two ends of the 121 countries and economies covered in May 2026.',
         '从 WildChat 的提问，我们转向 Claude 的使用。你会发现澳大利亚的指数约为坦桑尼亚的 91 倍。它们站在 2026 年 5 月这份数据覆盖的 121 个国家和经济体的两端。'),
-      extra:storySource('Anthropic Economic Index · Claude, May 2026.', 'Anthropic Economic Index · Claude，2026 年 5 月。') + vpnNote() +
+      extra:storySource('Anthropic Economic Index · Claude, May 2026.', 'Anthropic Economic Index · Claude，2026 年 5 月。') +
         `<div class="chips">${storyJump(GDP_SCATTER, 'Compare more countries', '比较更多国家')}</div>`,
       hint:L('Compare against the same baseline', '在共同基准下比较两国')
     };
@@ -1976,6 +1980,10 @@ function renderStoryChart(isComparison) {
       L('Index = usage share ÷ population share.', '指数 = 使用份额 ÷ 人口份额。'));
     text(compact ? 22 : left, baselineBottom + 120,
       L('Population: people aged 15–64.', '人口口径为 15–64 岁人群。'));
+    text(compact ? 22 : left, baselineBottom + 152,
+      L('⚠ Not in this data: mainland China, Hong Kong, Macau', '⚠ 本数据不含：中国大陆、香港、澳门'), 'story-gap');
+    text(compact ? 22 : left, baselineBottom + 172,
+      L('Claude is not offered there. Users on a VPN are counted in the VPN\'s exit country.', 'Claude 未在当地提供服务，VPN 用户被计入 VPN 出口国家。'), 'story-gap-sub');
     const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (!compareEntrancePlayed && !reduceMotion) {
       animateComparisonEntrance(svg, width, height);
@@ -1998,10 +2006,15 @@ function renderStoryChart(isComparison) {
 
   text(margin.left, 18, compact ? L('One point = one country', '每个点代表一个国家') : L('One point = one country · Both axes use logarithmic scales', '每个点代表一个国家 · 两轴采用对数刻度'));
   text(margin.left, 40, compact ? L('Both axes use logarithmic scales', '两轴采用对数刻度') : L('118 countries · GDP 2025 / Claude May 2026', '118 个国家 · GDP 2025 年 / Claude 2026 年 5 月'));
+  const gapNote = () => {
+    text(right - 12, bottom - 34, L('⚠ Not plotted: mainland China, Hong Kong, Macau', '⚠ 未画出：中国大陆、香港、澳门'), 'story-gap').attr('text-anchor', 'end');
+    text(right - 12, bottom - 14, L('No Claude data there; VPN users count as other countries.', '当地无 Claude 数据，VPN 用户被算作其他国家。'), 'story-gap-sub').attr('text-anchor', 'end');
+  };
   svg.append('defs').append('clipPath').attr('id', 'story-scatter-clip')
     .append('rect').attr('x',margin.left-7).attr('y',margin.top-7)
     .attr('width',right-margin.left+14).attr('height',bottom-margin.top+14);
   const plot = svg.append('g').attr('clip-path','url(#story-scatter-clip)');
+  gapNote();
   plot.append('rect').attr('class','scatter-hit-area').attr('x',margin.left).attr('y',margin.top)
     .attr('width',right-margin.left).attr('height',bottom-margin.top)
     .attr('fill','transparent').attr('pointer-events','all');
